@@ -110,22 +110,37 @@ def train(path_out, label_id_to_label, num_targets, num_epochs):
     targets_test = torch.argmax(targets_test, 1)
     lossfn = nn.MSELoss()
     net.train()
-    for idx in range(num_epochs):
-      optimizer.zero_grad()
-      output = net(samples_train)
-      loss = lossfn(output, targets_train)
-      loss.backward()
-      optimizer.step()
-      print(f'Done with epoch {idx}')
-    with torch.no_grad():
+    batch_size = 1000
+    num_batches = (len(samples_train)-1)//batch_size+1
+    print('Num batches:',num_batches)
+    for idx_epoch in range(num_epochs):
+      for idx_batch in range(num_batches):
+        start = idx_batch*batch_size
+        end = (idx_batch+1)*batch_size
+        samples = samples_train[start:end]
+        targets = targets_train[start:end]
+        optimizer.zero_grad()
+        output = net(samples)
+        loss = lossfn(output, targets)
+        loss.backward()
+        optimizer.step()
+        print('*',end='',flush=True)
+      print(f'\nDone with epoch {idx_epoch+1}/{num_epochs}')
+    num_batches = (len(samples_test)-1)//batch_size+1
+    with torch.no_grad():        
       target_total = np.zeros(num_targets)
       target_correct = np.zeros(num_targets)
-      output = net(samples_test)
-      output = torch.argmax(output, 1)
-      for idx in range(len(output)):
-        target_total[targets_test[idx]] += 1
-        if targets_test[idx]==output[idx]:
-          target_correct[targets_test[idx]] +=1
+      for idx_batch in range(num_batches):
+        start = idx_batch*batch_size
+        end = (idx_batch+1)*batch_size
+        samples = samples_test[start:end]
+        targets = targets_test[start:end]
+        output = net(samples)
+        output = torch.argmax(output, 1)
+        for idx in range(len(output)):
+          target_total[targets[idx]] += 1
+          if targets[idx]==output[idx]:
+            target_correct[targets[idx]] +=1
       for idx in range(num_targets):
         label = label_id_to_label[idx]
         percent = 100*target_correct[idx]/np.maximum(target_total[idx],1)
@@ -153,8 +168,8 @@ if __name__=='__main__':
   num_samples_test = labels_test.shape[0]
   num_targets = len(label_to_target.keys())
   # TODO: Just use a subset while developing
-  num_samples_train = 1000
-  num_samples_test = 1000
+  #num_samples_train = 100
+  #num_samples_test = 100
   num_epochs = 10
 
   print(f'Number of train samples: {num_samples_train}')

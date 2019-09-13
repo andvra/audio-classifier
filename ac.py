@@ -12,6 +12,7 @@ from convnet import ConvNet
 import torch
 import torch.nn as nn
 import torch.optim as optim 
+import sys
 
 def setup_output(path_out, labels_train, num_samples_train, num_samples_test, num_targets):
   # Load one of the WAV files so we can generate a melspectrogram and get the shape from there
@@ -31,7 +32,6 @@ def setup_output(path_out, labels_train, num_samples_train, num_samples_test, nu
 
 def setup_labels(path_labels_train, path_labels_test):
   labels_train = pd.read_csv(path_labels_train)
-  print(labels_train.head())
   labels_test = pd.read_csv(path_labels_test)
   label_to_label_id = {}
   label_id_to_label = {}
@@ -155,7 +155,7 @@ def train(path_out, label_id_to_label, num_targets, num_epochs):
 
 
 
-if __name__=='__main__':
+if __name__=='__main__': 
   root = 'data/'
   dir_train = os.path.join(root, 'input/train')
   dir_test = os.path.join(root, 'input/test')
@@ -173,7 +173,10 @@ if __name__=='__main__':
   # TODO: Just use a subset while developing
   #num_samples_train = 100
   #num_samples_test = 100
-  num_epochs = 20
+  if len(sys.argv)==2:
+    num_epochs = int(sys.argv[1])
+  else:
+    num_epochs = 20
 
   print(f'Number of train samples: {num_samples_train}')
   

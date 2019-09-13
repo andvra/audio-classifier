@@ -23,8 +23,7 @@ class ConvNet(nn.Module):
             nn.Conv2d(64, 128, 2, stride=2), # Result: 128 channels of size 8x32
             nn.ReLU(True),
             ReshapeDynamic((-1, 1, 128*8*32)),
-            nn.Linear(128*8*32, num_classes).to(processing_device),
-            nn.Sigmoid()
+            nn.Linear(128*8*32, num_classes).to(processing_device)
             )
 
     def forward(self, x):

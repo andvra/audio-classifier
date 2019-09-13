@@ -104,11 +104,12 @@ def train(path_out, label_id_to_label, num_targets, num_epochs):
     #audio.print_melspectrogram(samples[0][0], 44100, 512, 20, 8000)
     #plt.imshow(dataset_train_data[0],aspect='auto',origin='lower')
     targets_train = dataset_train_label[()]
-    targets_train = torch.from_numpy(targets_train).float()
+    targets_train = torch.from_numpy(targets_train).long()
+    targets_train = torch.argmax(targets_train, 1)
     targets_test = dataset_test_label[()]
-    targets_test = torch.from_numpy(targets_test).float()
+    targets_test = torch.from_numpy(targets_test).long()
     targets_test = torch.argmax(targets_test, 1)
-    lossfn = nn.MSELoss()
+    lossfn = nn.CrossEntropyLoss()
     net.train()
     batch_size = 1000
     num_batches = (len(samples_train)-1)//batch_size+1

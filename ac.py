@@ -114,6 +114,7 @@ def train(path_out, label_id_to_label, num_targets, num_epochs):
     num_batches = (len(samples_train)-1)//batch_size+1
     print('Num batches:',num_batches)
     for idx_epoch in range(num_epochs):
+      running_loss = 0
       for idx_batch in range(num_batches):
         start = idx_batch*batch_size
         end = (idx_batch+1)*batch_size
@@ -125,7 +126,8 @@ def train(path_out, label_id_to_label, num_targets, num_epochs):
         loss.backward()
         optimizer.step()
         print('*',end='',flush=True)
-      print(f'\nDone with epoch {idx_epoch+1}/{num_epochs}')
+        running_loss += loss.item()
+      print(f'\nDone with epoch {idx_epoch+1}/{num_epochs}. Loss: {running_loss/num_batches:.5f}')
     num_batches = (len(samples_test)-1)//batch_size+1
     with torch.no_grad():        
       target_total = np.zeros(num_targets)
@@ -170,7 +172,7 @@ if __name__=='__main__':
   # TODO: Just use a subset while developing
   #num_samples_train = 100
   #num_samples_test = 100
-  num_epochs = 10
+  num_epochs = 20
 
   print(f'Number of train samples: {num_samples_train}')
   

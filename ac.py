@@ -107,18 +107,35 @@ def train(path_out, label_id_to_label, num_targets, num_epochs):
     targets_train = torch.from_numpy(targets_train).float()
     targets_test = dataset_test_label[()]
     targets_test = torch.from_numpy(targets_test).float()
+    targets_test = torch.argmax(targets_test, 1)
     lossfn = nn.MSELoss()
     net.train()
     for idx in range(num_epochs):
-      output_train = net(samples_train)
-      loss_train = lossfn(output_train, targets_train)
-      output_test = net(samples_test)
-      loss_test = lossfn(output_test, targets_test)
-      print(loss_train, loss_test)
       optimizer.zero_grad()
-      loss_train.backward()
+      output = net(samples_train)
+      loss = lossfn(output, targets_train)
+      loss.backward()
       optimizer.step()
-    print(output.shape)
+      print(f'Done with epoch {idx}')
+    with torch.no_grad():
+      target_total = np.zeros(num_targets)
+      target_correct = np.zeros(num_targets)
+      output = net(samples_test)
+      output = torch.argmax(output, 1)
+      for idx in range(len(output)):
+        target_total[targets_test[idx]] += 1
+        if targets_test[idx]==output[idx]:
+          target_correct[targets_test[idx]] +=1
+      for idx in range(num_targets):
+        label = label_id_to_label[idx]
+        percent = 100*target_correct[idx]/np.maximum(target_total[idx],1)
+        print(f'{label:>25}: {percent:.2f}%')
+      tot_all = np.sum(target_total)
+      tot_correct = np.sum(target_correct)
+      tot = 100*tot_correct/tot_all
+      print(f'Total: {tot:.2f}% ({tot_correct:.0f}/{tot_all:.0f})')
+
+
 
 if __name__=='__main__':
   root = 'data/'
@@ -127,7 +144,6 @@ if __name__=='__main__':
   dir_out = os.path.join(root, 'output')
   path_labels_train = os.path.join(root, 'input/labels/train_post_competition.csv')
   path_labels_test = os.path.join(root, 'input/labels/test_post_competition_scoring_clips.csv')
-  # TODO: Generate unique output name now while coding
   path_out = os.path.join(dir_out, 'out.hdf5')
 
   utils.ensure_directory_existance([dir_out])
@@ -137,8 +153,8 @@ if __name__=='__main__':
   num_samples_test = labels_test.shape[0]
   num_targets = len(label_to_target.keys())
   # TODO: Just use a subset while developing
-  num_samples_train = 10
-  num_samples_test = 20
+  num_samples_train = 1000
+  num_samples_test = 1000
 
   print(f'Number of train samples: {num_samples_train}')
   
@@ -146,7 +162,8 @@ if __name__=='__main__':
 
   setup_output(path_out, labels_train, num_samples_train, num_samples_test, num_targets)
   create_melspectrograms(path_out, dir_train, dir_test, num_samples_train, num_samples_test, labels_train, labels_test)
-  train(path_out, label_id_to_label, num_targets, 50)
+  print('Start training')
+  train(path_out, label_id_to_label, num_targets, 2)
 
   after = time.time()
   t_tot = after-before

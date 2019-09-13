@@ -155,6 +155,7 @@ if __name__=='__main__':
   # TODO: Just use a subset while developing
   num_samples_train = 1000
   num_samples_test = 1000
+  num_epochs = 10
 
   print(f'Number of train samples: {num_samples_train}')
   
@@ -163,7 +164,7 @@ if __name__=='__main__':
   setup_output(path_out, labels_train, num_samples_train, num_samples_test, num_targets)
   create_melspectrograms(path_out, dir_train, dir_test, num_samples_train, num_samples_test, labels_train, labels_test)
   print('Start training')
-  train(path_out, label_id_to_label, num_targets, 2)
+  train(path_out, label_id_to_label, num_targets, num_epochs)
 
   after = time.time()
   t_tot = after-before

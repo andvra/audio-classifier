@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim 
 import sys
+import argparse
 
 def setup_output(path_out, labels_train, num_samples_train, num_samples_test, num_targets):
   # Load one of the WAV files so we can generate a melspectrogram and get the shape from there
@@ -153,9 +154,15 @@ def train(path_out, label_id_to_label, num_targets, num_epochs):
       tot = 100*tot_correct/tot_all
       print(f'Total: {tot:.2f}% ({tot_correct:.0f}/{tot_all:.0f})')
 
+def parse_command_line():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--num_epochs", "-e", default=20, type=int, required=False, help="Number of epochs")
+  parser.add_argument("--num_samples", "-n", default=np.inf, type=int, required=False, help="Number of samples to use for training and testing. NUM_SAMPLES = min(NUM_SAMPLES, actual number of samples)")
+  args = parser.parse_args()
+  return args
 
-
-if __name__=='__main__': 
+if __name__=='__main__':
+  args = parse_command_line() 
   root = 'data/'
   dir_train = os.path.join(root, 'input/train')
   dir_test = os.path.join(root, 'input/test')
@@ -170,13 +177,9 @@ if __name__=='__main__':
   num_samples_train = labels_train.shape[0]
   num_samples_test = labels_test.shape[0]
   num_targets = len(label_to_target.keys())
-  # TODO: Just use a subset while developing
-  #num_samples_train = 100
-  #num_samples_test = 100
-  if len(sys.argv)==2:
-    num_epochs = int(sys.argv[1])
-  else:
-    num_epochs = 20
+  num_samples_train = int(np.minimum(num_samples_train, args.num_samples))
+  num_samples_test = int(np.minimum(num_samples_test, args.num_samples))
+  num_epochs = args.num_epochs
 
   print(f'Number of train samples: {num_samples_train}')
   

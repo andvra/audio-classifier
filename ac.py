@@ -33,7 +33,7 @@ def setup_output(path_out, labels_train, num_samples_train, num_samples_test, nu
 
 def setup_labels(path_labels_train, path_labels_test, only_manually_verified):
   labels_train = pd.read_csv(path_labels_train)
-  # The Freesound dataset have a number of samples (~30%) that are automatically labelled.
+  # The Freesound dataset have a number of samples (~60%) that are automatically labelled.
   # These might be incorrect, so we might get better results from excluding these.
   if only_manually_verified==True:
     labels_train = labels_train[labels_train['manually_verified']==1]

@@ -152,6 +152,7 @@ def test(net, dataset_test_data, dataset_test_label, label_id_to_label, batch_si
 
 def parse_command_line():
   parser = argparse.ArgumentParser()
+  parser.add_argument("--rerun", "-r", action='store_const', const=True, default=False)
   parser.add_argument("--num_epochs", "-e", default=20, type=int, required=False, help="Number of epochs")
   parser.add_argument("--batch_size", "-bs", default=1000, type=int, required=False, help="Batch size")
   parser.add_argument("--num_samples", "-n", default=np.inf, type=int, required=False, help="Number of samples to use for training and testing. NUM_SAMPLES = min(NUM_SAMPLES, actual number of samples)")
@@ -185,7 +186,11 @@ if __name__=='__main__':
   print(f'Number of train samples: {num_samples_train}')
   print(f'Hardware used for processing: {device}')
   setup_output(path_out, labels_train, num_samples_train, num_samples_test, num_targets)
-  create_melspectrograms(path_out, dir_train, dir_test, num_samples_train, num_samples_test, labels_train, labels_test)
+  if not os.path.exists(path_out) or args.rerun:
+    print('Start generating melspectrograms')
+    create_melspectrograms(path_out, dir_train, dir_test, num_samples_train, num_samples_test, labels_train, labels_test)
+  else:
+    print('Found existing melspectrograms')
   print('Start training')
   with h5py.File(path_out,'r') as f:
     dataset_train_data = f['train']['output_data']

@@ -31,8 +31,12 @@ def setup_output(path_out, labels_train, num_samples_train, num_samples_test, nu
   groups.append(storage.HDF5Dataset('test', 'output_label', (num_samples_test,num_targets), 'i'))
   storage.create_hdf5(path_out, groups)
 
-def setup_labels(path_labels_train, path_labels_test):
+def setup_labels(path_labels_train, path_labels_test, only_manually_verified):
   labels_train = pd.read_csv(path_labels_train)
+  # The Freesound dataset have a number of samples (~30%) that are automatically labelled.
+  # These might be incorrect, so we might get better results from excluding these.
+  if only_manually_verified==True:
+    labels_train = labels_train[labels_train['manually_verified']==1]
   labels_test = pd.read_csv(path_labels_test)
   label_to_label_id = {}
   label_id_to_label = {}
@@ -152,10 +156,11 @@ def test(net, dataset_test_data, dataset_test_label, label_id_to_label, batch_si
 
 def parse_command_line():
   parser = argparse.ArgumentParser()
-  parser.add_argument("--rerun", "-r", action='store_const', const=True, default=False)
-  parser.add_argument("--num_epochs", "-e", default=20, type=int, required=False, help="Number of epochs")
-  parser.add_argument("--batch_size", "-bs", default=1000, type=int, required=False, help="Batch size")
+  parser.add_argument("--rerun", "-r", action='store_const', const=True, default=False, help="Regenerate all melspectrograms (default behavior: reuse generated melspectrograms)")
+  parser.add_argument("--num_epochs", "-e", default=20, type=int, required=False, help="Number of epochs used for training")
+  parser.add_argument("--batch_size", "-bs", default=1000, type=int, required=False, help="Batch size used during training")
   parser.add_argument("--num_samples", "-n", default=np.inf, type=int, required=False, help="Number of samples to use for training and testing. NUM_SAMPLES = min(NUM_SAMPLES, actual number of samples)")
+  parser.add_argument("--include_all", "-i", action='store_const', const=True, default=False, help="Include automatically labelled samples when training (default: False)")
   args = parser.parse_args()
   return args
 
@@ -170,7 +175,7 @@ if __name__=='__main__':
   path_out = os.path.join(dir_out, 'out.hdf5')
 
   utils.ensure_directory_existance([dir_out])
-  labels_train, labels_test, label_to_label_id, label_id_to_label, label_id_to_target, label_to_target = setup_labels(path_labels_train, path_labels_test)
+  labels_train, labels_test, label_to_label_id, label_id_to_label, label_id_to_target, label_to_target = setup_labels(path_labels_train, path_labels_test, not args.include_all)
 
   num_samples_train = labels_train.shape[0]
   num_samples_test = labels_test.shape[0]

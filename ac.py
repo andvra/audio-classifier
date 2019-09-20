@@ -86,18 +86,28 @@ def create_melspectrograms(path_out, dir_train, dir_test, num_samples_train, num
       'dataset_label': dataset_label_test,
       'num_samples': num_samples_test,
       'labels': labels_test})
+    std = None
+    mean = None
     for g in group_data:
       for idx in range(g['num_samples']):
         label = g['labels'].iloc[idx]['label']
         fname = g['labels'].iloc[idx]['fname']
         path = os.path.join(g['path'], fname)
         melspec, sample_rate = audio.melspectrogram_from_file(path, label)
-        melspec_normalized = utils.normalize(melspec)
+        #melspec_normalized = utils.normalize(melspec)
         # if idx==0:
         #   audio.print_melspectrogram(melspec_normalized, sample_rate, 512, 20, 8000)
         # Store data to the first (index 0) channel
-        g['dataset_data'][idx] = melspec_normalized
+        g['dataset_data'][idx] = melspec
         g['dataset_label'][idx] = label_to_target[label]
+      # NB Make sure the train dataset is first, so we can perform normalization on that dataset
+      if std==None:
+        mean = np.mean(g['dataset_data'])
+        std = np.std(g['dataset_data'])
+      g['dataset_data'] = (g['dataset_data']-mean)/std
+      mean2 = np.mean(g['dataset_data'])
+      std2 = np.std(g['dataset_data'])
+      print(f'Mean: {mean} std: {std} Mean2: {mean2} std2: {std2}')
 
 def train(net, dataset_train_data, dataset_train_label, num_targets, num_epochs, batch_size):
   global stop_training

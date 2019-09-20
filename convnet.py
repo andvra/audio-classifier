@@ -37,9 +37,9 @@ class ConvNet(nn.Module):
             nn.ReLU(),
             ReshapeDynamic((-1, 1, 128*8*32)),
             nn.Linear(128*8*32, num_classes).to(processing_device),
-            nn.Dropout(0.5),
             #PrintLayer('Before softmax'),
-            nn.Softmax(dim=2)
+            # Since we use Cross-entropy loss, we shouldn't use an activation function here
+            #nn.Softmax(dim=2)
             )
 
     def forward(self, x):

@@ -14,6 +14,17 @@ import torch.nn as nn
 import torch.optim as optim 
 import sys
 import argparse
+import threading
+
+stop_training = False
+
+def check_key_input():
+  global stop_training
+  k = ''
+  while k != 'q':
+    k = input()
+  print('Breaking execution after current epoch', end='', flush=True)
+  stop_training = True
 
 def setup_output(path_out, labels_train, num_samples_train, num_samples_test, num_targets):
   # Load one of the WAV files so we can generate a melspectrogram and get the shape from there
@@ -86,6 +97,7 @@ def create_melspectrograms(path_out, dir_train, dir_test, num_samples_train, num
         g['dataset_label'][idx] = label_to_target[label]
 
 def train(net, dataset_train_data, dataset_train_label, num_targets, num_epochs, batch_size):
+  global stop_training
   optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
   samples_train = dataset_train_data[()]
   # Add an extra dimension (channel dimension) required by the CNN
@@ -115,6 +127,8 @@ def train(net, dataset_train_data, dataset_train_label, num_targets, num_epochs,
       print('*',end='',flush=True)
       running_loss += loss.item()
     print(f'\nDone with epoch {idx_epoch+1}/{num_epochs}. Loss: {running_loss/num_batches:.5f}')
+    if stop_training==True:
+      break
 
 
 def test(net, dataset_test_data, dataset_test_label, label_id_to_label, batch_size):
@@ -124,11 +138,6 @@ def test(net, dataset_test_data, dataset_test_label, label_id_to_label, batch_si
   targets_test = dataset_test_label[()]
   targets_test = torch.from_numpy(targets_test).long()
   targets_test = torch.argmax(targets_test, 1)
-  for idx in range(5):
-    label_one_hot = dataset_train_label[idx]
-    label_id, = np.where(dataset_train_label[idx]==1)
-    label = label_id_to_label[label_id[0]]
-    # print(f'OneHot: {dataset_train_label[idx]} ID: {label_id} Label: {label}')
   num_batches = (len(samples_test)-1)//batch_size+1
   net.eval()
   with torch.no_grad():        
@@ -197,6 +206,8 @@ if __name__=='__main__':
   else:
     print('Found existing melspectrograms')
   print('Start training')
+  t = threading.Thread(target=check_key_input)
+  t.start()
   with h5py.File(path_out,'r') as f:
     dataset_train_data = f['train']['output_data']
     dataset_train_label = f['train']['output_label']

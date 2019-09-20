@@ -1,5 +1,15 @@
 import torch.nn as nn
 
+class PrintLayer(nn.Module):
+    """ Use this to make print() while running the sequantial net """
+    def __init__(self, name):
+        super(PrintLayer, self).__init__()
+        self.name = name
+
+    def forward(self, x):
+        print(f'{self.name}: {x.shape}')
+        return x
+
 class ReshapeDynamic(nn.Module):
     """ Reshape input """
     def __init__(self, *dim):
@@ -28,7 +38,8 @@ class ConvNet(nn.Module):
             nn.Dropout2d(p=0.2),
             ReshapeDynamic((-1, 1, 128*8*32)),
             nn.Linear(128*8*32, num_classes).to(processing_device),
-            nn.Sigmoid()
+            #PrintLayer('Before softmax'),
+            nn.Softmax(dim=2)
             )
 
     def forward(self, x):

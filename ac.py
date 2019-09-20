@@ -15,15 +15,18 @@ import torch.optim as optim
 import sys
 import argparse
 import threading
+import select, sys
 
 stop_training = False
-
+done = False
 def check_key_input():
   global stop_training
   k = ''
-  while k != 'q':
+  while k != 'q' and done==False:
     k = input()
-  print('Breaking execution after current epoch', end='', flush=True)
+  # Don't print anything if execution is done
+  if k == 'q':
+    print('Breaking execution after current epoch', end='', flush=True)
   stop_training = True
 
 def setup_output(path_out, labels_train, num_samples_train, num_samples_test, num_targets):
@@ -221,3 +224,6 @@ if __name__=='__main__':
   t_avg = t_tot/num_samples_train
   t_est = t_avg * labels_train.shape[0]
   print(f'Time: {t_tot:.2f}s Avg: {t_avg:.2f}s Est: {t_est:.2f}s')
+  done = True
+  if stop_training == False:
+    print("Press Enter to quit")

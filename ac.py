@@ -211,6 +211,7 @@ if __name__=='__main__':
     label_to_label_id = label_to_label_id.split(',')
     label_to_label_id = dict(x.split(':') for x in label_to_label_id)
     num_samples_train = len(dataset_train_data)
+    print(f'Number of train samples: {num_samples_train}')
     label_id_to_label = inv_map = {int(v): k for k, v in label_to_label_id.items()}
     num_targets = len(label_id_to_label.keys())
     num_epochs = args.num_epochs
@@ -222,8 +223,8 @@ if __name__=='__main__':
 
   after = time.time()
   t_tot = after-before
-  t_avg = t_tot/num_samples_train
-  print(f'Time: {t_tot:.2f}s Avg: {t_avg:.2f}s')
+  t_avg = t_tot/num_epochs
+  print(f'Time: {t_tot:.2f}s Time/epoch: {t_avg:.2f}s')
   done = True
   if stop_training == False:
     print("Press Enter to quit")

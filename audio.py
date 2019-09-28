@@ -3,31 +3,35 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def melspectrogram_from_file(path, label):
+  global max_len,min_len
+  num_seconds = 2
   # Load sample with preserved sample rate (sr=None)
   clip, sample_rate = librosa.load(path, sr=None)
-  # Maximum three seconds (for performance)
-  clip = clip[:sample_rate*3]
-  orig_len = len(clip)
-  # Pad with zeros (= silent) for the rest of the short sample
-  if len(clip) < sample_rate*3:
-    padded = np.zeros((sample_rate*3,))
-    padded[:len(clip)] = clip
-    clip = padded
-  # print(f'Num samples: {len(clip):7d} ({orig_len:7d}) SR: {sample_rate} Length (s): {len(clip)/sample_rate:6.2f} Label: {label} ({hash(label)})')
+  num_samples_orig = len(clip)
+  num_samples_desired = sample_rate*num_seconds
+  if num_samples_orig>num_samples_desired:
+    # Extract a random part of the clip
+    offset = np.random.randint(num_samples_orig-num_samples_desired)
+    clip = clip[offset:offset+num_samples_desired]
+  elif num_samples_orig<num_samples_desired:
+    # Pad the clips with zeros
+    offset = np.random.randint(num_samples_desired-num_samples_orig)
+    clip = np.pad(clip, (offset, num_samples_desired-offset-num_samples_orig))
   logS = get_melspectrogram(clip, sample_rate)
   return logS, sample_rate
 
 def get_melspectrogram(clip, sample_rate, n_fft=1024, hop_length=512):
   global tot_min, tot_max, all_mean, all_var
-  #fmax = sample_rate/2
+  fmax = sample_rate/2
   # Most of the important information seem to be below 8kHz
-  fmax = 8000
+  #fmax = 8000
   # We basically don't hear anything below 20Hz
-  fmin = 20
-  n_mels = 64
-  S = librosa.feature.melspectrogram(clip, sr=sample_rate, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax)
-  magnitude, phase = librosa.magphase(S)
-  logS = librosa.power_to_db(magnitude)
+  # fmin = 20
+  # n_mels = 64
+  # S = librosa.feature.melspectrogram(clip, sr=sample_rate, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax)
+  # magnitude, phase = librosa.magphase(S)
+  # logS = librosa.power_to_db(magnitude)
+  logS = librosa.feature.mfcc(clip, sr=sample_rate, n_mfcc=40)
   return logS
   
 def print_melspectrogram(logS, sample_rate, hop_length, fmin, fmax):

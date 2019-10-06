@@ -25,24 +25,30 @@ class ConvNet(nn.Module):
         super(ConvNet, self).__init__()
         self.__num_classes = num_classes
         # This is the number of features after all convolutions
-        num_features = 32*2*13
+        num_features = 32*5*21
+
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, 32, (4,10), stride=1),
+            PrintLayer('before'),
+            nn.Conv2d(1, 32, (3,11), stride=1, padding=(1,5)),
+            PrintLayer('after'),
             nn.BatchNorm2d(32),
             nn.ReLU(), # Perform ReLU in-place
             nn.MaxPool2d(2),
 
-            nn.Conv2d(32, 32, (4,10), stride=1),
+            nn.Conv2d(32, 32, (3,11), stride=1, padding=(1,5)),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2),
 
-            nn.Conv2d(32, 32, (4,10), stride=1),
+            nn.Conv2d(32, 32, (3,11), stride=1, padding=(1,5)),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2),
+            PrintLayer('last'),
             ReshapeDynamic((-1, 1, num_features)),
             nn.Linear(num_features, num_classes).to(processing_device)
+            #nn.BatchNorm2d(32),
+            #nn.ReLU()
             )
 
     def forward(self, x):

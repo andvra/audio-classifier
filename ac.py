@@ -104,7 +104,7 @@ def create_melspectrograms(path_out, dir_train, dir_test, num_samples_train, num
 
 def train(net, dataset_train_data, dataset_train_label, num_targets, num_epochs, batch_size, device):
   global stop_training
-  optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
+  optimizer = optim.Adam(net.parameters(), lr=1e-3)
   samples_train = dataset_train_data[()]
   # Add an extra dimension (channel dimension) required by the CNN
   samples_train = np.expand_dims(samples_train, axis=1)
